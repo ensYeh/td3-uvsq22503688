@@ -2,36 +2,48 @@ package fr.uvsq.cprog.collex;
 
 import java.util.Objects;
 
-public class NomMachine {
-    private final String nom;
+public class NomMachine implements Comparable<NomMachine> {
+    private final String nomComplet;
 
-    public NomMachine(String nom) {
-        if (!nom.contains(".")) {
-            throw new IllegalArgumentException("Nom de machine invalide : " + nom);
+    public NomMachine(String nomComplet) {
+        if (!nomComplet.contains(".")) {
+            throw new IllegalArgumentException("Nom de machine invalide: " + nomComplet);
         }
-        this.nom = nom;
+        this.nomComplet = nomComplet;
     }
 
     public String getNom() {
-        return nom;
+        return nomComplet.split("\\.")[0];
     }
 
     public String getDomaine() {
-        return nom.substring(nom.indexOf('.') + 1);
+        return nomComplet.substring(nomComplet.indexOf('.') + 1);
+    }
+
+    public String getNomComplet() {
+        return nomComplet;
+    }
+
+    @Override
+    public int compareTo(NomMachine autre) {
+        return this.nomComplet.compareTo(autre.nomComplet);
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof NomMachine && ((NomMachine) o).nom.equals(this.nom);
+        if (this == o) return true;
+        if (!(o instanceof NomMachine)) return false;
+        NomMachine that = (NomMachine) o;
+        return Objects.equals(nomComplet, that.nomComplet);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nom);
+        return Objects.hash(nomComplet);
     }
 
     @Override
     public String toString() {
-        return nom;
+        return nomComplet;
     }
 }
