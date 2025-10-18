@@ -3,36 +3,39 @@ package fr.uvsq.cprog.collex;
 import java.util.Objects;
 
 public class AdresseIP implements Comparable<AdresseIP> {
-    private final String adresse;
+    private final String valeur;
 
-    public AdresseIP(String adresse) {
-        if (!adresse.matches("\\d{1,3}(\\.\\d{1,3}){3}")) {
-            throw new IllegalArgumentException("Adresse IP invalide : " + adresse);
+    public AdresseIP(String valeur) {
+        if (!valeur.matches("(\\d{1,3}\\.){3}\\d{1,3}")) {
+            throw new IllegalArgumentException("Adresse IP invalide: " + valeur);
         }
-        this.adresse = adresse;
+        this.valeur = valeur;
     }
 
-    public String getAdresse() {
-        return adresse;
+    public String getValeur() {
+        return valeur;
     }
 
     @Override
-    public int compareTo(AdresseIP other) {
-        return this.adresse.compareTo(other.adresse);
+    public int compareTo(AdresseIP autre) {
+        return this.valeur.compareTo(autre.valeur);
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof AdresseIP && ((AdresseIP) o).adresse.equals(this.adresse);
+        if (this == o) return true;
+        if (!(o instanceof AdresseIP)) return false;
+        AdresseIP that = (AdresseIP) o;
+        return Objects.equals(valeur, that.valeur);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(adresse);
+        return Objects.hash(valeur);
     }
 
     @Override
     public String toString() {
-        return adresse;
+        return valeur;
     }
 }
