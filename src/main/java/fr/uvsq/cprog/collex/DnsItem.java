@@ -1,24 +1,24 @@
 package fr.uvsq.cprog.collex;
 
 public class DnsItem {
-    private NomMachine nomMachine;
-    private AdresseIP adresseIP;
+    private final AdresseIP adresse;
+    private final NomMachine nomMachine;
 
-    public DnsItem(NomMachine nomMachine, AdresseIP adresseIP) {
+    public DnsItem(AdresseIP adresse, NomMachine nomMachine) {
+        this.adresse = adresse;
         this.nomMachine = nomMachine;
-        this.adresseIP = adresseIP;
+    }
+
+    public AdresseIP getAdresse() {
+        return adresse;
     }
 
     public NomMachine getNomMachine() {
         return nomMachine;
     }
 
-    public AdresseIP getAdresseIP() {
-        return adresseIP;
-    }
-
     @Override
     public String toString() {
-        return nomMachine.toString() + " -> " + adresseIP.toString();
+        return adresse + " " + nomMachine;
     }
 }
