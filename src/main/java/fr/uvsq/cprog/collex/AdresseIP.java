@@ -1,21 +1,38 @@
 package fr.uvsq.cprog.collex;
 
-public class AdresseIP {
-    private int[] octets;
+import java.util.Objects;
 
-    public AdresseIP(int o1, int o2, int o3, int o4) {
-        if (!isValidOctet(o1) || !isValidOctet(o2) || !isValidOctet(o3) || !isValidOctet(o4)) {
-            throw new IllegalArgumentException("Each octet must be between 0 and 255.");
+public class AdresseIP implements Comparable<AdresseIP> {
+    private final String adresse;
+
+    public AdresseIP(String adresse) {
+        if (!adresse.matches("\\d{1,3}(\\.\\d{1,3}){3}")) {
+            throw new IllegalArgumentException("Adresse IP invalide : " + adresse);
         }
-        this.octets = new int[]{o1, o2, o3, o4};
+        this.adresse = adresse;
     }
 
-    private boolean isValidOctet(int octet) {
-        return octet >= 0 && octet <= 255;
+    public String getAdresse() {
+        return adresse;
+    }
+
+    @Override
+    public int compareTo(AdresseIP other) {
+        return this.adresse.compareTo(other.adresse);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof AdresseIP && ((AdresseIP) o).adresse.equals(this.adresse);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(adresse);
     }
 
     @Override
     public String toString() {
-        return String.format("%d.%d.%d.%d", octets[0], octets[1], octets[2], octets[3]);
+        return adresse;
     }
 }
