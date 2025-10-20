@@ -14,7 +14,6 @@ public class CommandeLS implements Commande {
     this.sortByIp = sortByIp;
   }
 
-
   @Override
   public String execute() {
     List<DnsItem> items = dns.getItems(domain, sortByIp);

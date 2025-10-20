@@ -10,7 +10,6 @@ public class CommandeRechercheIP implements Commande {
     this.name = name;
   }
 
-
   @Override
   public String execute() {
     DnsItem item = dns.getItem(name);

@@ -1,8 +1,5 @@
 package fr.uvsq.cprog.collex;
 
-/**
- * Represents a DNS entry mapping an IP address to a machine name.
- */
 public class DnsItem {
   private final AdresseIP ip;
   private final NomMachine name;
