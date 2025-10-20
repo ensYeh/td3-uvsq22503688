@@ -1,49 +1,61 @@
 package fr.uvsq.cprog.collex;
 
-import java.util.Objects;
+import java.util.regex.Pattern;
 
-public class NomMachine implements Comparable<NomMachine> {
-    private final String nomComplet;
 
-    public NomMachine(String nomComplet) {
-        if (!nomComplet.contains(".")) {
-            throw new IllegalArgumentException("Nom de machine invalide: " + nomComplet);
-        }
-        this.nomComplet = nomComplet;
+public class NomMachine {
+  private final String machineName;
+  private final String domain;
+
+  public NomMachine(String name) {
+    if (!isValidName(name)) {
+      throw new IllegalArgumentException("Invalid machine name: " + name);
     }
+    String[] parts = name.split("\\.", 2);
+    this.machineName = parts[0];
+    this.domain = parts.length > 1 ? parts[1] : "";
+  }
 
-    public String getNom() {
-        return nomComplet.split("\\.")[0];
-    }
 
-    public String getDomaine() {
-        return nomComplet.substring(nomComplet.indexOf('.') + 1);
-    }
+  private boolean isValidName(String name) {
+    String namePattern = "^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$";
+    return name != null && Pattern.matches(namePattern, name);
+  }
 
-    public String getNomComplet() {
-        return nomComplet;
-    }
 
-    @Override
-    public int compareTo(NomMachine autre) {
-        return this.nomComplet.compareTo(autre.nomComplet);
-    }
+  public String getMachineName() {
+    return machineName;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof NomMachine)) return false;
-        NomMachine that = (NomMachine) o;
-        return Objects.equals(nomComplet, that.nomComplet);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(nomComplet);
-    }
+  public String getDomain() {
+    return domain;
+  }
 
-    @Override
-    public String toString() {
-        return nomComplet;
+
+  public String getFullName() {
+    return domain.isEmpty() ? machineName : machineName + "." + domain;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
     }
+    if (!(other instanceof NomMachine)) {
+      return false;
+    }
+    NomMachine otherName = (NomMachine) other;
+    return machineName.equals(otherName.machineName) && domain.equals(otherName.domain);
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * machineName.hashCode() + domain.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return getFullName();
+  }
 }

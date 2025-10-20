@@ -1,100 +1,107 @@
 package fr.uvsq.cprog.collex;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class Dns {
-    private static final Logger logger = LoggerFactory.getLogger(Dns.class);
+  private static final Logger logger = LoggerFactory.getLogger(Dns.class);
+  private final List<DnsItem> database;
+  private final String dataFilePath;
 
-    private final Map<AdresseIP, DnsItem> parAdresse = new HashMap<>();
-    private final Map<NomMachine, DnsItem> parNom = new HashMap<>();
-    private final Path cheminFichier;
 
-    public Dns(String fichierConfig) throws IOException {
-        Properties props = new Properties();
-        props.load(Files.newInputStream(Paths.get(fichierConfig)));
+  public Dns(String dataFilePath) throws IOException {
+    this.database = new ArrayList<>();
+    this.dataFilePath = dataFilePath;
+    loadDatabase();
+  }
 
-        String fichierDns = props.getProperty("dns.file");
-        if (fichierDns == null) {
-            throw new IllegalArgumentException("Le fichier de propriétés doit contenir 'dns.file'");
+
+  private void loadDatabase() throws IOException {
+    try (InputStream input = Dns.class.getResourceAsStream(dataFilePath)) {
+      if (input == null) {
+        throw new IOException("DNS data file not found: " + dataFilePath);
+      }
+      BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] parts = line.trim().split("\\s+");
+        if (parts.length == 2) {
+          try {
+            DnsItem item = new DnsItem(new AdresseIP(parts[1]), new NomMachine(parts[0]));
+            database.add(item);
+          } catch (IllegalArgumentException e) {
+            logger.warn("Invalid entry in DNS data file: {}", line);
+          }
         }
-
-        this.cheminFichier = Paths.get(fichierDns);
-        chargerBase();
+      }
     }
+  }
 
-    private void chargerBase() throws IOException {
-        if (!Files.exists(cheminFichier)) {
-            logger.warn("Fichier DNS inexistant, création d'un nouveau : {}", cheminFichier);
-            Files.createFile(cheminFichier);
-            return;
-        }
-
-        List<String> lignes = Files.readAllLines(cheminFichier);
-        for (String ligne : lignes) {
-            if (ligne.isBlank()) continue;
-            String[] parts = ligne.trim().split("\\s+");
-            if (parts.length != 2) {
-                logger.warn("Ligne ignorée (format invalide) : {}", ligne);
-                continue;
-            }
-
-            NomMachine nom = new NomMachine(parts[0]);
-            AdresseIP ip = new AdresseIP(parts[1]);
-            DnsItem item = new DnsItem(ip, nom);
-            parAdresse.put(ip, item);
-            parNom.put(nom, item);
-        }
-        logger.info("Base DNS chargée : {} éléments", parAdresse.size());
+  public DnsItem getItem(AdresseIP ip) {
+    for (DnsItem item : database) {
+      if (item.getIp().equals(ip)) {
+        return item;
+      }
     }
+    return null;
+  }
 
-    public DnsItem getItem(AdresseIP adresse) {
-        return parAdresse.get(adresse);
+
+  public DnsItem getItem(NomMachine name) {
+    for (DnsItem item : database) {
+      if (item.getName().equals(name)) {
+        return item;
+      }
     }
+    return null;
+  }
 
-    public DnsItem getItem(NomMachine nom) {
-        return parNom.get(nom);
+
+  public List<DnsItem> getItems(String domain, boolean sortByIp) {
+    List<DnsItem> items = new ArrayList<>();
+    for (DnsItem item : database) {
+      if (item.getName().getDomain().equals(domain)) {
+        items.add(item);
+      }
     }
-
-
-    public List<DnsItem> getItems(String domaine) {
-        List<DnsItem> resultat = new ArrayList<>();
-        for (DnsItem item : parNom.values()) {
-            if (item.getNomMachine().getDomaine().equalsIgnoreCase(domaine)) {
-                resultat.add(item);
-            }
-        }
-        resultat.sort(Comparator.comparing(i -> i.getNomMachine().getNomComplet()));
-        return resultat;
+    if (sortByIp) {
+      Collections.sort(items, (a, b) -> a.getIp().getIpAddress().compareTo(b.getIp().getIpAddress()));
+    } else {
+      Collections.sort(items, (a, b) -> a.getName().getMachineName().compareTo(b.getName().getMachineName()));
     }
+    return items;
+  }
 
-
-    public void addItem(AdresseIP ip, NomMachine nom) throws IOException {
-        if (parAdresse.containsKey(ip)) {
-            throw new IllegalArgumentException("ERREUR : L'adresse existe déjà !");
-        }
-        if (parNom.containsKey(nom)) {
-            throw new IllegalArgumentException("ERREUR : Le nom de machine existe déjà !");
-        }
-
-        DnsItem item = new DnsItem(ip, nom);
-        parAdresse.put(ip, item);
-        parNom.put(nom, item);
-
-        List<String> lignes = new ArrayList<>(Files.readAllLines(cheminFichier));
-        lignes.add(nom.getNomComplet() + " " + ip.getValeur());
-        Files.write(cheminFichier, lignes);
-
-        logger.info("Nouvelle entrée ajoutée : {} {}", nom, ip);
+  public void addItem(AdresseIP ip, NomMachine name) throws IOException {
+    if (getItem(ip) != null) {
+      throw new IllegalArgumentException("IP address already exists: " + ip);
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        parNom.values().forEach(item -> sb.append(item).append("\n"));
-        return sb.toString();
+    if (getItem(name) != null) {
+      throw new IllegalArgumentException("Machine name already exists: " + name);
     }
+    DnsItem item = new DnsItem(ip, name);
+    database.add(item);
+    updateDataFile();
+  }
+
+  private void updateDataFile() throws IOException {
+    Path path = Path.of("dns_data.txt");
+    List<String> lines = new ArrayList<>();
+    for (DnsItem item : database) {
+      lines.add(item.toString());
+    }
+    Files.write(path, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+  }
 }

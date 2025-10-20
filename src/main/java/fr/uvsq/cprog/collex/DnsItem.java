@@ -1,24 +1,29 @@
 package fr.uvsq.cprog.collex;
 
+/**
+ * Represents a DNS entry mapping an IP address to a machine name.
+ */
 public class DnsItem {
-    private final AdresseIP adresse;
-    private final NomMachine nomMachine;
+  private final AdresseIP ip;
+  private final NomMachine name;
 
-    public DnsItem(AdresseIP adresse, NomMachine nomMachine) {
-        this.adresse = adresse;
-        this.nomMachine = nomMachine;
-    }
 
-    public AdresseIP getAdresse() {
-        return adresse;
-    }
+  public DnsItem(AdresseIP ip, NomMachine name) {
+    this.ip = ip;
+    this.name = name;
+  }
 
-    public NomMachine getNomMachine() {
-        return nomMachine;
-    }
+  public AdresseIP getIp() {
+    return ip;
+  }
 
-    @Override
-    public String toString() {
-        return adresse + " " + nomMachine;
-    }
+  public NomMachine getName() {
+    return name;
+  }
+
+
+  @Override
+  public String toString() {
+    return name + " " + ip;
+  }
 }

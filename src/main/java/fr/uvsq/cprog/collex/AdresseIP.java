@@ -1,41 +1,51 @@
 package fr.uvsq.cprog.collex;
 
-import java.util.Objects;
+import java.util.regex.Pattern;
 
-public class AdresseIP implements Comparable<AdresseIP> {
-    private final String valeur;
 
-    public AdresseIP(String valeur) {
-        if (!valeur.matches("(\\d{1,3}\\.){3}\\d{1,3}")) {
-            throw new IllegalArgumentException("Adresse IP invalide: " + valeur);
-        }
-        this.valeur = valeur;
+public class AdresseIP {
+  private final String ipAddress;
+
+
+  public AdresseIP(String ipAddress) {
+    if (!isValidIp(ipAddress)) {
+      throw new IllegalArgumentException("Invalid IP address: " + ipAddress);
     }
+    this.ipAddress = ipAddress;
+  }
 
-    public String getValeur() {
-        return valeur;
-    }
 
-    @Override
-    public int compareTo(AdresseIP autre) {
-        return this.valeur.compareTo(autre.valeur);
-    }
+  private boolean isValidIp(String ip) {
+    String ipPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}"
+        + "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+    return ip != null && Pattern.matches(ipPattern, ip);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AdresseIP)) return false;
-        AdresseIP that = (AdresseIP) o;
-        return Objects.equals(valeur, that.valeur);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(valeur);
-    }
+  public String getIpAddress() {
+    return ipAddress;
+  }
 
-    @Override
-    public String toString() {
-        return valeur;
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
     }
+    if (!(other instanceof AdresseIP)) {
+      return false;
+    }
+    return ipAddress.equals(((AdresseIP) other).ipAddress);
+  }
+
+
+  @Override
+  public int hashCode() {
+    return ipAddress.hashCode();
+  }
+
+
+  @Override
+  public String toString() {
+    return ipAddress;
+  }
 }
